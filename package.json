@@ -3,6 +3,7 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "packageManager": "pnpm@9.7.0",
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
@@ -41,3 +42,4 @@
     "node": ">=20.0.0"
   }
 }
+
