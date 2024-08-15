@@ -6,8 +6,12 @@ import { json } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Share A Secret - Share your secrets and password securely" },
+    {
+      name: "description",
+      content:
+        "Share A Secret is your trusted platform for secure and confidential password sharing. Safeguard sensitive information with end-to-end encryption, ensuring your secrets remain private. Share passwords, confidential data, and personal messages securely and effortlessly with peace of mind.",
+    },
   ];
 };
 
@@ -56,7 +60,7 @@ export default function Index() {
             Go
           </button>
         </Form>
-        {data?.key && <p>copy and save this url: {data?.key}</p>}
+        {data && "key" in data && <p>copy and save this url: {data.key}</p>}
       </div>
       <div>
         <h4 className="text-gray-900 py-6 font-bold text-5xl">
@@ -76,7 +80,7 @@ export default function Index() {
             Go
           </button>
         </Form>
-        {data?.message && <p>message</p>}
+        {data && "message" in data && <p>{data.message}</p>}
       </div>
     </div>
   );
