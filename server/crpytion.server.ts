@@ -13,11 +13,7 @@ export async function encrypt(text: string) {
 	const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
 	let encrypted = cipher.update(text, "utf8", "hex");
 	encrypted += cipher.final("hex");
-	console.log({
-		text: encrypted,
-		hashedKey,
-		iv: iv.toString("hex"),
-	});
+
 	await prisma.message.create({
 		data: {
 			text: encrypted,
@@ -25,24 +21,23 @@ export async function encrypt(text: string) {
 			iv: iv.toString("hex"),
 		},
 	});
-	console.log("created", key.toString("hex"));
 	return key.toString("hex");
 }
 
-// encrypt("I Love U")
+// encrypt("sarvani sanaboyina");
 
 export async function decrypt(key: string) {
+	const hashedKey = await bcrypt.hash(key, GLOBAL_SALT);
 	let message = await prisma.message.findUnique({
 		where: {
-			hashedKey: key,
+			hashedKey: hashedKey,
 		},
 	});
 
 	if (message == null) {
-		throw new Error("");
+		throw new Error("No message found");
 	}
 
-	const result = await bcrypt.compare(key, message.hashedKey);
 	const decipher = crypto.createDecipheriv(
 		"aes-256-cbc",
 		Buffer.from(key, "hex"),
@@ -52,4 +47,4 @@ export async function decrypt(key: string) {
 	decrypted += decipher.final("utf8");
 	return decrypted;
 }
-// decrypt("c965abe35ab38baaedbc79f0415a69dd0d15b37ba8915de65620ca97f260ebcb")
+// decrypt("1ebdb0030ffa3a73e7dc65a9f10bc4908a5135efd2275cd549d9a3ce9b76511e");
