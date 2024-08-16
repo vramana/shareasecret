@@ -20,16 +20,18 @@ export async function action({ request }: ActionFunctionArgs) {
   const intent = formData.get("intent");
 
   switch (intent) {
-    case "encrypt":
-      const text = String(formData.get("text"));
+    case "encrypt": {
+      const text = formData.get("text") as string;
       const key = await encrypt(text);
       return json({ success: true, key: key });
+    }
 
-    case "decrypt":
+    case "decrypt": {
       const userKey = String(formData.get("key"));
 
       const message = await decrypt(userKey);
       return json({ success: true, message });
+    }
 
     default:
       return json({ success: false, message: "Unknown action" });
