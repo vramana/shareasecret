@@ -1,9 +1,6 @@
 import crypto from "node:crypto";
-import bcrypt from "bcrypt";
-import { PrismaClient } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
-
-const prisma = new PrismaClient();
+import { prisma } from "./db.server";
 
 const DEFAULT_EXPIRY = 1000 * 60 * 60 * 24 * 7;
 
