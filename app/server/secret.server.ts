@@ -5,61 +5,57 @@ import { createId } from "@paralleldrive/cuid2";
 
 const prisma = new PrismaClient();
 
+const DEFAULT_EXPIRY = 1000 * 60 * 60 * 24 * 7;
+
 export async function encrypt(text: string) {
-	const key = crypto.randomBytes(32);
-	const iv = crypto.randomBytes(16);
-	const cuid = createId();
+  const key = crypto.randomBytes(32);
+  const iv = crypto.randomBytes(16);
+  const cuid = createId();
 
-	const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-	let encrypted = cipher.update(text, "utf8", "hex");
-	encrypted += cipher.final("hex");
+  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
 
-	const hashedKey = await bcrypt.hash(key.toString("hex"), 12);
-	await prisma.message.create({
-		data: {
-			cuid,
-			text: encrypted,
-			hashedKey,
-			iv: iv.toString("hex"),
-		},
-	});
+  const id = createId();
+  await prisma.secret.create({
+    data: {
+      id,
+      cuid,
+      encrytedSecret: encrypted,
+      iv: iv.toString("hex"),
+      expiresAt: new Date(Date.now() + DEFAULT_EXPIRY),
+    },
+  });
 
-	console.log({ cuid, hashedKey });
-	console.log(`${cuid}/${key.toString("hex")}`);
-	return `${cuid}/${key.toString("hex")}`;
+  return {
+    key: `${cuid}/${key.toString("hex")}`,
+    id,
+  };
 }
 
 // encrypt("sarvani sanaboyina");
 
 export async function decrypt(key: string) {
-	const [cuid, cipherKey] = key.split("/");
+  const [cuid, cipherKey] = key.split("/");
 
-	const start = Date.now();
-	const message = await prisma.message.findFirst({ where: { cuid } });
+  const start = Date.now();
+  const message = await prisma.secret.findFirst({ where: { cuid } });
 
-	if (message == null) {
-		throw new Error("No message found");
-	}
+  if (message == null) {
+    throw new Error("No message found");
+  }
 
-	const result = await bcrypt.compare(cipherKey, message.hashedKey);
+  const decipher = crypto.createDecipheriv(
+    "aes-256-cbc",
+    Buffer.from(cipherKey, "hex"),
+    Buffer.from(message.iv, "hex")
+  );
+  let decrypted = decipher.update(message.encrytedSecret, "hex", "utf8");
+  decrypted += decipher.final("utf8");
 
-	console.log({ cipherKey, hashedKey: message.hashedKey });
+  console.log({ decrypted, duration: Date.now() - start });
 
-	if (!result) {
-		throw new Error("No secret found");
-	}
-
-	const decipher = crypto.createDecipheriv(
-		"aes-256-cbc",
-		Buffer.from(cipherKey, "hex"),
-		Buffer.from(message.iv, "hex"),
-	);
-	let decrypted = decipher.update(message.text, "hex", "utf8");
-	decrypted += decipher.final("utf8");
-
-	console.log({ decrypted, duration: Date.now() - start });
-
-	return decrypted;
+  return decrypted;
 }
 
 // async function run() {

@@ -13,21 +13,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Message {
+model Secret {
+  id             String    @id
+  encrytedSecret String
+  cuid           String    @unique
+  iv             String
+  user           User?     @relation(fields: [userId], references: [id])
+  userId         Int?
+  burnedAt       DateTime?
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+  viewedAt       DateTime?
+  updatedAt      DateTime  @updatedAt
+  views          Int       @default(0)
+}
+
+model User {
   id        Int      @id @default(autoincrement())
-  text      String
-  cuid      String   @unique
-  hashedKey String   @unique
-  iv        String
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    Int?
+  email     String   @unique
+  name      String?
+  secrets   Secret[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model User {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
-  name     String?
-  messages Message[]
+model Session {
+  id        String   @id
+  data      Json?
+  expires   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
