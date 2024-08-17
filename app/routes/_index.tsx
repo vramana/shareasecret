@@ -33,11 +33,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export async function action({ request }: ActionFunctionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
   const formData = await request.formData();
 
   const text = formData.get("text") as string;
-  const key = await encrypt(text);
-  return redirect(`/private/${key.id}`);
+  const { id, key } = await encrypt(text);
+
+  session.flash("secretUrl", `/secrets/${key}`);
+  session.flash("secretText", text);
+
+  return redirect(`/private/${id}`, {
+    headers: { "Set-Cookie": await commitSession(session) },
+  });
 }
 
 export default function Index() {

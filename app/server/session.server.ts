@@ -8,6 +8,7 @@ type SessionData = {
 
 type SessionFlashData = {
   secretUrl: string;
+  secretText: string;
 };
 
 const { getSession, commitSession, destroySession } =
@@ -50,7 +51,6 @@ function createDatabaseSessionStorage<SData, FData>({
           expires: expires,
         },
       });
-      console.log({ expires });
       return session.id;
     },
     // @ts-ignore
@@ -67,6 +67,17 @@ function createDatabaseSessionStorage<SData, FData>({
         await prisma.session.delete({ where: { id } });
         return null;
       }
+
+      // new session data should have __flash_ keys removed
+      const data = session.data as Record<string, any>;
+      const newData = Object.fromEntries(
+        Object.entries(data).filter(([key]) => !key.startsWith("__flash_"))
+      );
+
+      await prisma.session.update({
+        where: { id },
+        data: { data: newData },
+      });
 
       return session.data;
     },
