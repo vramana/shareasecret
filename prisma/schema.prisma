@@ -16,6 +16,7 @@ datasource db {
 model Message {
   id        Int      @id @default(autoincrement())
   text      String
+  cuid      String   @unique
   hashedKey String   @unique
   iv        String
   user      User?    @relation(fields: [userId], references: [id])

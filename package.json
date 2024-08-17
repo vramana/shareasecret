@@ -12,6 +12,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "5.18.0",
     "@remix-run/node": "^2.11.1",
     "@remix-run/react": "^2.11.1",

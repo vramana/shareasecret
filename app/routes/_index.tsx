@@ -1,7 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
-import { encrypt, decrypt } from "../../server/crpytion.server";
+import { encrypt, decrypt } from "~/server/secret.server";
 import { json } from "@remix-run/node";
 
 export const meta: MetaFunction = () => {
