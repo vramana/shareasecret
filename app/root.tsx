@@ -16,10 +16,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
+      <body className="bg-slate-100">
+        <div className="lg:w-1/2 mx-auto p-4">
+          <h1 className="text-3xl font-bold text-green-700">Share a Secret</h1>
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+        </div>
       </body>
     </html>
   );

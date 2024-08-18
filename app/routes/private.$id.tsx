@@ -19,18 +19,28 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
   if (secretUrl) {
     secretUrl = requestUrl.origin + secretUrl;
-    return { id: params.id, secretUrl, secretText };
+    return { id: params.id, secretUrl, secretText, secretData };
   }
+
+  return { id: params.id, secretData };
 };
 
 export default function Private() {
   const data = useLoaderData<typeof loader>();
+
   return (
     <div>
-      <h1>Private {data.id}</h1>
-
-      <pre>{data.secretUrl}</pre>
-      <pre>{data.secretText}</pre>
+      <h2 className="text-gray-900 py-6 font-bold text-xl">Details</h2>
+      {"secretUrl" in data && (
+        <>
+          <input
+            className="p-1 w-full"
+            disabled
+            defaultValue={data.secretUrl}
+          />
+          <input disabled defaultValue={data.secretText} />
+        </>
+      )}
     </div>
   );
 }

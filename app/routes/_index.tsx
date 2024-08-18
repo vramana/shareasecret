@@ -40,24 +40,24 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Index() {
   return (
-    <div className="text-center py-10">
-      <h4 className="text-gray-900 py-6 font-bold text-5xl">
-        Enter your secret here
-      </h4>
-      <Form method="post" className="flex flex-col align-center">
-        <div className="w-[50%]">
+    <Form method="post" className="flex flex-col align-center">
+      <div className="text-center">
+        <h2 className="text-gray-900 py-6 font-bold text-xl">
+          Enter your secret here
+        </h2>
+        <div className="w-full">
           <textarea
             name="text"
-            className="flex p-2 rounded-md bg-gray-100 w-full"
+            className="bg-white flex p-2  w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-800"
           />
           <button
-            className="block mx-4 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
+            className="block my-4 text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
             type="submit"
           >
             Create a secret
           </button>
         </div>
-      </Form>
-    </div>
+      </div>
+    </Form>
   );
 }

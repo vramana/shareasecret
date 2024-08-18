@@ -55,7 +55,7 @@ export default function Secret() {
 
   return (
     <div>
-      <h1>Secret</h1>
+      <h2>Secret</h2>
       {content}
     </div>
   );
