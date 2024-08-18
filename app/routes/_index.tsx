@@ -1,24 +1,15 @@
 import {
   type ActionFunctionArgs,
   LoaderFunctionArgs,
-  type MetaFunction,
   json,
   redirect,
 } from "@remix-run/node";
 import { Form } from "@remix-run/react";
 import { encrypt } from "~/server/secret.server";
 import { commitSession, getSession } from "~/server/session.server";
+import { commonMeta } from "~/utils/meta";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Share A Secret - Share your secrets and password securely" },
-    {
-      name: "description",
-      content:
-        "Share A Secret is your trusted platform for secure and confidential password sharing. Safeguard sensitive information with end-to-end encryption, ensuring your secrets remain private. Share passwords, confidential data, and personal messages securely and effortlessly with peace of mind.",
-    },
-  ];
-};
+export const meta = commonMeta;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get("Cookie"));
@@ -37,9 +28,9 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   const text = formData.get("text") as string;
-  const { id, key } = await encrypt(text);
+  const { id, secretUrl } = await encrypt({ text });
 
-  session.flash("secretUrl", `/secrets/${key}`);
+  session.flash("secretUrl", `/secret/${secretUrl}`);
   session.flash("secretText", text);
 
   return redirect(`/private/${id}`, {

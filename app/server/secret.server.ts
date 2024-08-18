@@ -4,7 +4,7 @@ import { prisma } from "./db.server";
 
 const DEFAULT_EXPIRY = 1000 * 60 * 60 * 24 * 7;
 
-export async function encrypt(text: string) {
+export async function encrypt({ text }: { text: string }) {
   const key = crypto.randomBytes(32);
   const iv = crypto.randomBytes(16);
   const cuid = createId();
@@ -25,50 +25,79 @@ export async function encrypt(text: string) {
   });
 
   return {
-    key: `${cuid}/${key.toString("hex")}`,
+    secretUrl: `${cuid}/${key.toString("hex")}`,
     id,
   };
 }
 
-// encrypt("sarvani sanaboyina");
-
-export async function decrypt(key: string) {
-  const [cuid, cipherKey] = key.split("/");
-
-  const start = Date.now();
+export async function decrypt({ cuid, key }: { cuid: string; key: string }) {
+  // TODO: Use a transaction to update the secret and return the decrypted value
+  // Otherwise, there can be a race condition where the secret is decrypted multiple times
   const message = await prisma.secret.findFirst({ where: { cuid } });
-
   if (message == null) {
-    throw new Error("No message found");
+    return {
+      success: false,
+      message: "Secret not found",
+    };
+  }
+
+  if (message.expiresAt < new Date() && !message.burnedAt) {
+    return {
+      success: false,
+      message: "Secret is not available anymore",
+    } as const;
   }
 
   const decipher = crypto.createDecipheriv(
     "aes-256-cbc",
-    Buffer.from(cipherKey, "hex"),
+    Buffer.from(key, "hex"),
     Buffer.from(message.iv, "hex")
   );
   let decrypted = decipher.update(message.encrytedSecret, "hex", "utf8");
   decrypted += decipher.final("utf8");
 
-  console.log({ decrypted, duration: Date.now() - start });
+  await expireSecret(message.id);
 
-  return decrypted;
+  return { success: true, secretValue: decrypted } as const;
 }
 
-// async function run() {
-// 	await decrypt(
-// 		"hlzkfcdxdb2oythn4xthouil/3fe1bb8ad4cb3fabfc152f76c931ede55de348ec71d659a07635de69ab27fb9e",
-// 	);
+export async function expireSecret(id: string) {
+  await prisma.secret.update({
+    where: { id },
+    data: {
+      encrytedSecret: "",
+      expiresAt: new Date(),
+    },
+  });
+}
 
-// 	await decrypt(
-// 		"hlzkfcdxdb2oythn4xthouil/3fe1bb8ad4cb3fabfc152f76c931ede55de348ec71d659a07635de69ab27fb9e",
-// 	);
-// 	await decrypt(
-// 		"hlzkfcdxdb2oythn4xthouil/3fe1bb8ad4cb3fabfc152f76c931ede55de348ec71d659a07635de69ab27fb9e",
-// 	);
-// 	await decrypt(
-// 		"hlzkfcdxdb2oythn4xthouil/3fe1bb8ad4cb3fabfc152f76c931ede55de348ec71d659a07635de69ab27fb9e",
-// 	);
-// }
+export async function burnSecret(id: string) {
+  await prisma.secret.update({
+    where: { id },
+    data: {
+      encrytedSecret: "",
+      burnedAt: new Date(),
+    },
+  });
+}
 
-// run();
+export async function getSecretPublicData(
+  data: { cuid: string } | { id: string }
+) {
+  const secret = await prisma.secret.findFirst({
+    where: data,
+    select: { expiresAt: true, burnedAt: true },
+  });
+
+  if (secret == null) {
+    return {
+      success: false,
+      message: "Secret not found",
+    } as const;
+  }
+
+  return {
+    success: true,
+    data: secret,
+  } as const;
+}
