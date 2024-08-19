@@ -15,6 +15,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <link rel="icon" href="/shareasecret.svg" />
       </head>
       <body className="bg-slate-100">
         <div className="lg:w-1/2 mx-auto p-4">
