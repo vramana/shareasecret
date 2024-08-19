@@ -4,7 +4,7 @@ import {
   json,
   redirect,
 } from "@remix-run/node";
-import { Form } from "@remix-run/react";
+import { Form, useActionData } from "@remix-run/react";
 import { encrypt } from "~/server/secret.server";
 import { commitSession, getSession } from "~/server/session.server";
 import { commonMeta } from "~/utils/meta";
@@ -28,6 +28,10 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   const text = formData.get("text") as string;
+  if (text.length > 100 * 1024) {
+    return json({ error: "Secrets must be less than 100KB" }, { status: 400 });
+  }
+
   const { id, secretUrl } = await encrypt({ text });
 
   session.flash("secretUrl", `/secret/${secretUrl}`);
@@ -39,6 +43,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Index() {
+  const actionData = useActionData<typeof action>();
+
   return (
     <Form method="post" className="flex flex-col align-center">
       <div className="text-center">
@@ -56,6 +62,9 @@ export default function Index() {
           >
             Create a secret
           </button>
+          {actionData?.error && (
+            <div className="my-2 text-red-600">{actionData.error}</div>
+          )}
         </div>
       </div>
     </Form>
